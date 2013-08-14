@@ -16,13 +16,13 @@ new String:GameName[64]
 
 new bool:IsBonusRound = false
 
-#define PLUGIN_VERSION "1.0.110"
+#define PLUGIN_VERSION "1.2.0"
 
 // Functions
 public Plugin:myinfo =
 {
 	name = "Evil Admin - Rocket",
-	author = "<eVa>Dog",
+	author = "<eVa>Dog, ChrisMiuchiz",
 	description = "Make a rocket with a player",
 	version = PLUGIN_VERSION,
 	url = "http://www.theville.org"
@@ -151,7 +151,8 @@ PerformEvilRocket(client, target)
 		if (client != -1)
 		{
 			LogAction(client, target, "\"%L\" sent \"%L\" into space", client, target)
-			ShowActivity(client, "launched %N into space", target) 
+			ShowActivity(client, "launched %N into space", target)
+			PrintToChatAll("[SM] %N was launched into space!", target);
 			
 			if (gametype == 1)
 			{
