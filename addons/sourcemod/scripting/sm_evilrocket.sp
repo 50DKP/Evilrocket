@@ -507,7 +507,7 @@ public Action:Command_RocketMe(client, args)
 		if (IsClientInGame(client) && IsPlayerAlive(client))
 		{
 			PerformEvilRocket(-1, client)
-			CreateTimer(3.0, MessageUs, client)
+			CreateTimer(3.4, MessageUs, client)
 		}
 	}
 	else if (GetConVarInt(Cvar_RocketMe))
@@ -515,7 +515,7 @@ public Action:Command_RocketMe(client, args)
 		if (IsClientInGame(client) && IsPlayerAlive(client))
 		{
 			PerformEvilRocket(-1, client)
-			CreateTimer(3.0, MessageUs, client)
+			CreateTimer(3.4, MessageUs, client)
 		}
 	}
 	else
@@ -529,15 +529,19 @@ new CanMessage = 0
 
 public Action:MessageUs(Handle:timer, any:client)
 {
-	if(CanMessage < 3)
+	if(CanMessage < 3 && IsPlayerAlive(client))
 	{
-	PrintToChatAll("[SM] %N died in a rocket-related accident", client);
-	CanMessage = CanMessage + 1;
-	if(CanMessage > 3)
-		{
-		CanMessage = 3;
-		}
-	CreateTimer(3.0, MakeCanMessage);
+		PrintToChatAll("[SM] %N died in a rocket-related accident", client);
+		CanMessage = CanMessage + 1;
+		if(CanMessage > 3)
+			{
+			CanMessage = 3;
+			}
+		CreateTimer(3.0, MakeCanMessage);
+	}
+	if(!IsPlayerAlive(client))
+	{
+		PrintToChat(client, "[SM] You have to be alive to use RocketMe!");
 	}
 }
 
