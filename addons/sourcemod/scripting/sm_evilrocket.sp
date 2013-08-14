@@ -53,7 +53,7 @@ public OnPluginStart()
 		HookEvent("dod_round_win", RoundWinEvent);
 		HookEvent("dod_round_active", RoundStartEvent);
 	}
-	
+
 	new Handle:topmenu;
 	if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != INVALID_HANDLE))
 	{
@@ -99,9 +99,9 @@ public OnMapStart()
 	{
 		gametype = 0;
 	}
-	
+
 	g_Explosion = PrecacheModel("sprites/sprite_fire01.vmt");
-	
+
 	PrecacheSound("ambient/explosions/exp2.wav", true);
 	PrecacheSound("npc/env_headcrabcanister/launch.wav", true);
 	PrecacheSound("weapons/rpg/rocketfire1.wav", true);
@@ -189,11 +189,12 @@ public Action:Launch(Handle:timer, any:client)
 {
 	if (IsClientInGame(client))
 	{
-		new Float:vVel[3];
+		new Float:vVel[]={0.0, 0.0, 800.0};
+		/*new Float:vVel[3];
 		vVel[0] = 0.0;
 		vVel[1] = 0.0;
-		vVel[2] = 800.0;
-		
+		vVel[2] = 800.0;*/
+
 		EmitSoundToAll("ambient/explosions/exp2.wav", client, _, _, _, 1.0);
 		EmitSoundToAll("npc/env_headcrabcanister/launch.wav", client, _, _, _, 1.0);
 
@@ -213,7 +214,6 @@ public Action:Detonate(Handle:timer, any:client)
 		{	
 			DeleteParticle(g_Ent[client]);
 			g_Ent[client] = 0;
-
 			if (IsBonusRound)
 			{
 				new Float:ClientOrigin[3];
@@ -427,10 +427,11 @@ AttachFlame(ent)
 		new Float:pos[3];
 		GetEntPropVector(ent, Prop_Send, "m_vecOrigin", pos);
 		pos[2] += 30;
-		new Float:angles[3];
+		new Float:angles[]={90.0, 0.0, 0.0};
+		/*new Float:angles[3];
 		angles[0] = 90.0;
 		angles[1] = 0.0;
-		angles[2] = 0.0;
+		angles[2] = 0.0;*/
 
 		Format(tName, sizeof(tName), "target%i", ent);
 		DispatchKeyValue(ent, "targetname", tName);
