@@ -1,40 +1,46 @@
+/*
+CHANGELOG:
+----------
+v1.2.2 (August 15, 2013 A.D.):  Fixed compile errors/formatting (Wliu).
+v1.2.1 (August 14, 2013 A.D.):  Optimized array code and made `#pragma semicolon` 1 (Wliu).
+v1.2.0:  --CHRIS PUT YOUR STUFF HERE-- (Chris).
+*/
 #pragma semicolon 1
 
 #include <sourcemod>
 #include <sdktools>
 #include <sdktools_functions>
-#undef REQUIRE_PLUGIN
 #include <adminmenu>
+#undef REQUIRE_PLUGIN
 
-new Handle:hAdminMenu = INVALID_HANDLE;
+new Handle:hAdminMenu=INVALID_HANDLE;
 
-new Handle:Cvar_RocketMe = INVALID_HANDLE;
+new Handle:Cvar_RocketMe=INVALID_HANDLE;
 
-new gametype = 0;
+new gametype=0;
 new g_Explosion;
 
 new g_Ent[MAXPLAYERS+1];
 new String:GameName[64];
 
-new bool:IsBonusRound = false;
-new CanMessage = 0;
+new bool:IsBonusRound=false;
+new CanMessage=0;
 
-#define PLUGIN_VERSION "1.2.0";
+#define PLUGIN_VERSION "1.2.2"
 
-// Functions
 public Plugin:myinfo =
 {
-	name = "Evil Admin - Rocket",
-	author = "<eVa>Dog, ChrisMiuchiz",
-	description = "Make a rocket with a player",
-	version = PLUGIN_VERSION,
-	url = "http://www.theville.org"
+	name="Evil Admin - Rocket",
+	author="<eVa>Dog, ChrisMiuchiz",
+	description="Make a rocket with a player",
+	version=PLUGIN_VERSION,
+	url="http://www.theville.org"
 };
 
 public OnPluginStart()
 {
 	CreateConVar("sm_evilrocket_version", PLUGIN_VERSION, " Evil Rocket Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
-	Cvar_RocketMe = CreateConVar("sm_rocketme_enabled", "0", " Allow players to suicide as a rocket", FCVAR_PLUGIN);
+	Cvar_RocketMe=CreateConVar("sm_rocketme_enabled", "0", " Allow players to suicide as a rocket", FCVAR_PLUGIN);
 
 	RegAdminCmd("sm_evilrocket", Command_EvilRocket, ADMFLAG_SLAY, "sm_evilrocket <#userid|name>");
 	RegConsoleCmd("sm_rocketme", Command_RocketMe, " a fun way to suicide");
@@ -43,19 +49,19 @@ public OnPluginStart()
 
 	GetGameFolderName(GameName, sizeof(GameName));
 
-	if (StrEqual(GameName, "tf"))
+	if(StrEqual(GameName, "tf"))
 	{
 		HookEvent("teamplay_round_win", RoundWinEvent);
 		HookEvent("teamplay_round_active", RoundStartEvent);
 	}
-	else if (StrEqual(GameName, "dod"))
+	else if(StrEqual(GameName, "dod"))
 	{
 		HookEvent("dod_round_win", RoundWinEvent);
 		HookEvent("dod_round_active", RoundStartEvent);
 	}
 
 	new Handle:topmenu;
-	if (LibraryExists("adminmenu") && ((topmenu = GetAdminTopMenu()) != INVALID_HANDLE))
+	if(LibraryExists("adminmenu") && ((topmenu=GetAdminTopMenu()) != INVALID_HANDLE))
 	{
 		OnAdminMenuReady(topmenu);
 	}
@@ -63,22 +69,22 @@ public OnPluginStart()
 
 public Action:RoundWinEvent(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	IsBonusRound = true;
+	IsBonusRound=true;
 }
 
 public Action:RoundStartEvent(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	IsBonusRound = false;
+	IsBonusRound=false;
 }
 
 public OnEventShutdown()
 {
-	if (StrEqual(GameName, "tf"))
+	if(StrEqual(GameName, "tf"))
 	{
 		UnhookEvent("teamplay_round_win", RoundWinEvent);
 		UnhookEvent("teamplay_round_active", RoundStartEvent);
 	}
-	else if (StrEqual(GameName, "dod"))
+	else if(StrEqual(GameName, "dod"))
 	{
 		UnhookEvent("dod_round_win", RoundWinEvent);
 		UnhookEvent("dod_round_active", RoundStartEvent);
@@ -87,20 +93,20 @@ public OnEventShutdown()
 
 public OnMapStart()
 {
-	if (StrEqual(GameName, "tf"))
+	if(StrEqual(GameName, "tf"))
 	{
-		gametype = 1;
+		gametype=1;
 	}
-	else if (StrEqual(GameName, "dod"))
+	else if(StrEqual(GameName, "dod"))
 	{
-		gametype = 2;
+		gametype=2;
 	}
 	else 
 	{
-		gametype = 0;
+		gametype=0;
 	}
 
-	g_Explosion = PrecacheModel("sprites/sprite_fire01.vmt");
+	g_Explosion=PrecacheModel("sprites/sprite_fire01.vmt");
 
 	PrecacheSound("ambient/explosions/exp2.wav", true);
 	PrecacheSound("npc/env_headcrabcanister/launch.wav", true);
@@ -115,22 +121,22 @@ public Action:Command_EvilRocket(client, args)
 	decl target_count;
 	decl bool:tn_is_ml;
 
-	if (args < 1)
+	if(args < 1)
 	{
 		ReplyToCommand(client, "[SM] Usage: sm_evilrocket <#userid|name>");
 		return Plugin_Handled;
 	}
 	GetCmdArg(1, target, sizeof(target));
 
-	if ((target_count = ProcessTargetString(target, client, target_list, MAXPLAYERS, 0, target_name, sizeof(target_name), tn_is_ml)) <= 0)
+	if((target_count=ProcessTargetString(target, client, target_list, MAXPLAYERS, 0, target_name, sizeof(target_name), tn_is_ml))<=0)
 	{
 		ReplyToTargetError(client, target_count);
 		return Plugin_Handled;
 	}
 
-	for (new i = 0; i < target_count; i++)
+	for(new i=0; i < target_count; i++)
 	{
-		if (IsClientInGame(target_list[i]) && IsPlayerAlive(target_list[i]))
+		if(IsClientInGame(target_list[i]) && IsPlayerAlive(target_list[i]))
 		{
 			PerformEvilRocket(client, target_list[i]);
 		}
@@ -140,19 +146,19 @@ public Action:Command_EvilRocket(client, args)
 
 PerformEvilRocket(client, target)
 {
-	if (g_Ent[target] == 0)
+	if(g_Ent[target]==0)
 	{
-		if (client != -1)
+		if(client != -1)
 		{
 			LogAction(client, target, "\"%L\" sent \"%L\" into space", client, target);
 			ShowActivity(client, "launched %N into space", target);
 			PrintToChatAll("[SM] %N was launched into space!", target);
 
-			if (gametype == 1)
+			if(gametype==1)
 			{
 				AttachParticle(target, "rockettrail_!");
 			}
-			else if (gametype == 2)
+			else if(gametype==2)
 			{
 				AttachParticle(target, "rockettrail");
 			}
@@ -166,11 +172,11 @@ PerformEvilRocket(client, target)
 		}
 		else
 		{
-			if (gametype == 1)
+			if(gametype==1)
 			{
 				AttachParticle(target, "rockettrail_!");
 			}
-			else if (gametype == 2)
+			else if(gametype==2)
 			{
 				AttachParticle(target, "rockettrail");
 			}
@@ -187,13 +193,9 @@ PerformEvilRocket(client, target)
 
 public Action:Launch(Handle:timer, any:client)
 {
-	if (IsClientInGame(client))
+	if(IsClientInGame(client))
 	{
 		new Float:vVel[]={0.0, 0.0, 800.0};
-		/*new Float:vVel[3];
-		vVel[0] = 0.0;
-		vVel[1] = 0.0;
-		vVel[2] = 800.0;*/
 
 		EmitSoundToAll("ambient/explosions/exp2.wav", client, _, _, _, 1.0);
 		EmitSoundToAll("npc/env_headcrabcanister/launch.wav", client, _, _, _, 1.0);
@@ -206,21 +208,21 @@ public Action:Launch(Handle:timer, any:client)
 
 public Action:Detonate(Handle:timer, any:client)
 {
-	if (IsClientInGame(client))
+	if(IsClientInGame(client))
 	{
 		new Float:vPlayer[3];
 		GetClientAbsOrigin(client, vPlayer);
-		if (gametype == 1)
-		{	
+		if(gametype==1)
+		{
 			DeleteParticle(g_Ent[client]);
-			g_Ent[client] = 0;
-			if (IsBonusRound)
+			g_Ent[client]=0;
+			if(IsBonusRound)
 			{
 				new Float:ClientOrigin[3];
 				GetClientAbsOrigin(client, ClientOrigin);
-				if (IsPlayerAlive(client));
+				if(IsPlayerAlive(client))
 				{
-					new g_ent = CreateEntityByName("env_explosion");
+					new g_ent=CreateEntityByName("env_explosion");
 					DispatchKeyValue(g_ent, "iMagnitude", "2000");
 					DispatchKeyValue(g_ent, "iRadiusOverride", "15");
 					DispatchSpawn(g_ent);
@@ -231,26 +233,26 @@ public Action:Detonate(Handle:timer, any:client)
 			}
 			else
 			{
-				if (IsPlayerAlive(client))
+				if(IsPlayerAlive(client))
 				{
 					FakeClientCommand(client, "Explode");
 				}
 			}
 		}
-		else if (gametype == 2)
-		{	
+		else if(gametype==2)
+		{
 			DeleteParticle(g_Ent[client]);
-			g_Ent[client] = 0;
-			if (IsPlayerAlive(client))
+			g_Ent[client]=0;
+			if(IsPlayerAlive(client))
 			{
 				FakeClientCommand(client, "Explode");
 			}
 		}
-		else if (IsPlayerAlive(client))
+		else if(IsPlayerAlive(client))
 		{
 			TE_SetupExplosion(vPlayer, g_Explosion, 10.0, 1, 0, 600, 5000);
 			TE_SendToAll();
-			g_Ent[client] = 0;
+			g_Ent[client]=0;
 			ForcePlayerSuicide(client);
 		}
 		ForcePlayerSuicide(client);
@@ -261,11 +263,11 @@ public Action:Detonate(Handle:timer, any:client)
 
 public Action:KillExplosion(Handle:timer, any:ent)
 {
-    if (IsValidEntity(ent))
+    if(IsValidEntity(ent))
     {
         new String:classname[256];
         GetEdictClassname(ent, classname, sizeof(classname));
-        if (StrEqual(classname, "env_explosion", false));
+        if(StrEqual(classname, "env_explosion", false))
         {
             RemoveEdict(ent);
         }
@@ -274,34 +276,34 @@ public Action:KillExplosion(Handle:timer, any:ent)
 
 public OnLibraryRemoved(const String:name[])
 {
-	if (StrEqual(name, "adminmenu")) 
+	if(StrEqual(name, "adminmenu")) 
 	{
-		hAdminMenu = INVALID_HANDLE;
+		hAdminMenu=INVALID_HANDLE;
 	}
 }
 
 public OnAdminMenuReady(Handle:topmenu)
 {
-	if (topmenu == hAdminMenu)
+	if(topmenu==hAdminMenu)
 	{
 		return;
 	}
-	hAdminMenu = topmenu;
-	new TopMenuObject:player_commands = FindTopMenuCategory(hAdminMenu, ADMINMENU_PLAYERCOMMANDS);
+	hAdminMenu=topmenu;
+	new TopMenuObject:player_commands=FindTopMenuCategory(hAdminMenu, ADMINMENU_PLAYERCOMMANDS);
 
-	if (player_commands != INVALID_TOPMENUOBJECT)
+	if(player_commands != INVALID_TOPMENUOBJECT)
 	{
-		AddToTopMenu(hAdminMenu, "sm_evilrocket", TopMenuObject_Item, AdminMenu_rocket, player_commands, "sm_evilrocket", ADMFLAG_SLAY)
+		AddToTopMenu(hAdminMenu, "sm_evilrocket", TopMenuObject_Item, AdminMenu_rocket, player_commands, "sm_evilrocket", ADMFLAG_SLAY);
 	}
 }
  
 public AdminMenu_rocket( Handle:topmenu, TopMenuAction:action, TopMenuObject:object_id, param, String:buffer[], maxlength )
 {
-	if (action == TopMenuAction_DisplayOption)
+	if(action==TopMenuAction_DisplayOption)
 	{
 		Format(buffer, maxlength, "Evil Rocket");
 	}
-	else if( action == TopMenuAction_SelectOption)
+	else if(action==TopMenuAction_SelectOption)
 	{
 		DisplayPlayerMenu(param);
 	}
@@ -309,7 +311,7 @@ public AdminMenu_rocket( Handle:topmenu, TopMenuAction:action, TopMenuObject:obj
 
 DisplayPlayerMenu(client)
 {
-	new Handle:menu = CreateMenu(MenuHandler_Players);
+	new Handle:menu=CreateMenu(MenuHandler_Players);
 	decl String:title[100];
 	Format(title, sizeof(title), "Choose Player:");
 	SetMenuTitle(menu, title);
@@ -320,39 +322,38 @@ DisplayPlayerMenu(client)
 
 public MenuHandler_Players(Handle:menu, MenuAction:action, param1, param2)
 {
-	if (action == MenuAction_End)
+	if(action==MenuAction_End)
 	{
 		CloseHandle(menu);
 	}
-	else if (action == MenuAction_Cancel)
+	else if(action==MenuAction_Cancel)
 	{
-		if (param2 == MenuCancel_ExitBack && hAdminMenu != INVALID_HANDLE)
+		if(param2==MenuCancel_ExitBack && hAdminMenu != INVALID_HANDLE)
 		{
 			DisplayTopMenu(hAdminMenu, param1, TopMenuPosition_LastCategory);
 		}
 	}
-	else if (action == MenuAction_Select)
+	else if(action==MenuAction_Select)
 	{
 		decl String:info[32];
 		new userid, target;
 
 		GetMenuItem(menu, param2, info, sizeof(info));
-		userid = StringToInt(info);
-		if ((target = GetClientOfUserId(userid)) == 0)
+		userid=StringToInt(info);
+		if((target=GetClientOfUserId(userid))==0)
 		{
 			PrintToChat(param1, "[SM] %s", "Player no longer available");
 		}
-		else if (!CanUserTarget(param1, target))
+		else if(!CanUserTarget(param1, target))
 		{
 			PrintToChat(param1, "[SM] %s", "Unable to target");
 		}
 		else
-		{					
+		{				
 			PerformEvilRocket(param1, target);
 		}
 
-		/* Re-draw the menu if they're still valid */
-		if (IsClientInGame(param1) && !IsClientInKickQueue(param1))
+		if(IsClientInGame(param1) && !IsClientInKickQueue(param1))
 		{
 			DisplayPlayerMenu(param1);
 		}
@@ -361,18 +362,18 @@ public MenuHandler_Players(Handle:menu, MenuAction:action, param1, param2)
 
 AttachParticle(ent, String:particleType[])
 {
-	new particle = CreateEntityByName("info_particle_system");
+	new particle=CreateEntityByName("info_particle_system");
 	new String:tName[128], String:pName[128];
-	if (IsValidEdict(particle))
+	if(IsValidEdict(particle))
 	{
 		new Float:pos[3];
 		GetEntPropVector(ent, Prop_Send, "m_vecOrigin", pos);
-		if (gametype == 1)
+		if(gametype==1)
 		{
 			pos[2] += 10;
 			TeleportEntity(particle, pos, NULL_VECTOR, NULL_VECTOR);
 		}
-		else if (gametype == 2)
+		else if(gametype==2)
 		{
 			pos[2] += 50;
 			TeleportEntity(particle, pos, NULL_VECTOR, NULL_VECTOR);
@@ -391,24 +392,24 @@ AttachParticle(ent, String:particleType[])
 		SetVariantString(tName);
 		AcceptEntityInput(particle, "SetParent", particle, particle, 0);
 
-		if (gametype == 1)
+		if(gametype==1)
 		{
 			SetVariantString("flag");
 			AcceptEntityInput(particle, "SetParentAttachment", particle, particle, 0);
 		}
 		ActivateEntity(particle);
 		AcceptEntityInput(particle, "start");
-		g_Ent[ent] = particle;
+		g_Ent[ent]=particle;
 	}
 }
 
 DeleteParticle(any:particle)
 {
-    if (IsValidEntity(particle))
+    if(IsValidEntity(particle))
     {
         new String:classname[256];
         GetEdictClassname(particle, classname, sizeof(classname));
-        if (StrEqual(classname, "info_particle_system", false))
+        if(StrEqual(classname, "info_particle_system", false))
         {
             RemoveEdict(particle);
         }
@@ -421,17 +422,13 @@ AttachFlame(ent)
 	Format(flame_name, sizeof(flame_name), "RocketFlame%i", ent);
 
 	new String:tName[128];
-	new flame = CreateEntityByName("env_steam");
-	if (IsValidEdict(flame))
+	new flame=CreateEntityByName("env_steam");
+	if(IsValidEdict(flame))
 	{
 		new Float:pos[3];
 		GetEntPropVector(ent, Prop_Send, "m_vecOrigin", pos);
 		pos[2] += 30;
 		new Float:angles[]={90.0, 0.0, 0.0};
-		/*new Float:angles[3];
-		angles[0] = 90.0;
-		angles[1] = 0.0;
-		angles[2] = 0.0;*/
 
 		Format(tName, sizeof(tName), "target%i", ent);
 		DispatchKeyValue(ent, "targetname", tName);
@@ -454,17 +451,17 @@ AttachFlame(ent)
 		SetVariantString(tName);
 		AcceptEntityInput(flame, "SetParent", flame, flame, 0);
 		CreateTimer(3.0, DeleteFlame, flame);
-		g_Ent[ent] = flame;
+		g_Ent[ent]=flame;
 	}
 }
 
 public Action:DeleteFlame(Handle:timer, any:ent)
 {
-	if (IsValidEntity(ent))
+	if(IsValidEntity(ent))
     {
         new String:classname[256];
         GetEdictClassname(ent, classname, sizeof(classname));
-        if (StrEqual(classname, "env_steam", false))
+        if(StrEqual(classname, "env_steam", false))
         {
             RemoveEdict(ent);
         }
@@ -473,25 +470,25 @@ public Action:DeleteFlame(Handle:timer, any:ent)
 
 public Action:Command_RocketMe(client, args)
 {
-	new flags = GetUserFlagBits(client);
-	if (flags & ADMFLAG_ROOT || flags & ADMFLAG_VOTE)
+	new flags=GetUserFlagBits(client);
+	if(flags & ADMFLAG_ROOT || flags & ADMFLAG_VOTE)
 	{
-		if (IsClientInGame(client) && IsPlayerAlive(client))
+		if(IsClientInGame(client) && IsPlayerAlive(client))
 		{
 			PerformEvilRocket(-1, client);
 			CreateTimer(3.4, MessageUs, client);
 		}
 	}
-	else if (GetConVarInt(Cvar_RocketMe))
+	else if(GetConVarInt(Cvar_RocketMe))
 	{
-		if (IsClientInGame(client) && IsPlayerAlive(client))
+		if(IsClientInGame(client) && IsPlayerAlive(client))
 		{
 			PerformEvilRocket(-1, client);
 			CreateTimer(3.4, MessageUs, client);
 		}
 	}
 	else
-	{	
+	{
 		PrintToChat(client, "[SM] RocketMe is not enabled");
 	}
 	return Plugin_Handled;
@@ -505,7 +502,7 @@ public Action:MessageUs(Handle:timer, any:client)
 		CanMessage++;
 		if(CanMessage > 3)
 		{
-			CanMessage = 3;
+			CanMessage=3;
 		}
 		CreateTimer(3.0, MakeCanMessage);
 	}
