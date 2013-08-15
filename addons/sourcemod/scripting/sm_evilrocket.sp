@@ -349,7 +349,7 @@ public MenuHandler_Players(Handle:menu, MenuAction:action, param1, param2)
 			PrintToChat(param1, "[SM] %s", "Unable to target");
 		}
 		else
-		{				
+		{
 			PerformEvilRocket(param1, target);
 		}
 
