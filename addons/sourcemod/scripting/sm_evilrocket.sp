@@ -1,9 +1,10 @@
 /*
 CHANGELOG:
 ----------
+v1.3.0 (February 2, 2013 A.D.):  Rewrote !rocketme message handling (Wliu).
 v1.2.2 (August 15, 2013 A.D.):  Fixed compile errors/formatting (Wliu).
-v1.2.1 (August 14, 2013 A.D.):  Optimized array code and made `#pragma semicolon` 1 (Wliu).
-v1.2.0:  --CHRIS PUT YOUR STUFF HERE-- (Chris).
+v1.2.1 (August 14, 2013 A.D.):  Optimized array code and made #pragma semicolon 1 (Wliu).
+v1.2.0:  Fixed numerous exploits (Chris).
 */
 #pragma semicolon 1
 
@@ -24,14 +25,14 @@ new g_Ent[MAXPLAYERS+1];
 new String:GameName[64];
 
 new bool:IsBonusRound=false;
-new CanMessage=0;
+new bool:canMessage[MAXPLAYERS+1]={true, ...};
 
-#define PLUGIN_VERSION "1.2.2"
+#define PLUGIN_VERSION "1.3.0"
 
 public Plugin:myinfo =
 {
 	name="Evil Admin - Rocket",
-	author="<eVa>Dog, ChrisMiuchiz",
+	author="<eVa>Dog, 50DKP",
 	description="Make a rocket with a player",
 	version=PLUGIN_VERSION,
 	url="http://www.theville.org"
@@ -43,12 +44,11 @@ public OnPluginStart()
 	Cvar_RocketMe=CreateConVar("sm_rocketme_enabled", "0", " Allow players to suicide as a rocket", FCVAR_PLUGIN);
 
 	RegAdminCmd("sm_evilrocket", Command_EvilRocket, ADMFLAG_SLAY, "sm_evilrocket <#userid|name>");
-	RegConsoleCmd("sm_rocketme", Command_RocketMe, " a fun way to suicide");
+	RegConsoleCmd("sm_rocketme", Command_RocketMe, "A fun way to suicide :3");
 
 	LoadTranslations("common.phrases");
 
 	GetGameFolderName(GameName, sizeof(GameName));
-
 	if(StrEqual(GameName, "tf"))
 	{
 		HookEvent("teamplay_round_win", RoundWinEvent);
@@ -296,8 +296,8 @@ public OnAdminMenuReady(Handle:topmenu)
 		AddToTopMenu(hAdminMenu, "sm_evilrocket", TopMenuObject_Item, AdminMenu_rocket, player_commands, "sm_evilrocket", ADMFLAG_SLAY);
 	}
 }
- 
-public AdminMenu_rocket( Handle:topmenu, TopMenuAction:action, TopMenuObject:object_id, param, String:buffer[], maxlength )
+
+public AdminMenu_rocket(Handle:topmenu, TopMenuAction:action, TopMenuObject:object_id, param, String:buffer[], maxlength)
 {
 	if(action==TopMenuAction_DisplayOption)
 	{
@@ -370,12 +370,12 @@ AttachParticle(ent, String:particleType[])
 		GetEntPropVector(ent, Prop_Send, "m_vecOrigin", pos);
 		if(gametype==1)
 		{
-			pos[2] += 10;
+			pos[2]+=10;
 			TeleportEntity(particle, pos, NULL_VECTOR, NULL_VECTOR);
 		}
 		else if(gametype==2)
 		{
-			pos[2] += 50;
+			pos[2]+=50;
 			TeleportEntity(particle, pos, NULL_VECTOR, NULL_VECTOR);
 		}
 
@@ -427,7 +427,7 @@ AttachFlame(ent)
 	{
 		new Float:pos[3];
 		GetEntPropVector(ent, Prop_Send, "m_vecOrigin", pos);
-		pos[2] += 30;
+		pos[2]+=30;
 		new Float:angles[]={90.0, 0.0, 0.0};
 
 		Format(tName, sizeof(tName), "target%i", ent);
@@ -496,15 +496,11 @@ public Action:Command_RocketMe(client, args)
 
 public Action:MessageUs(Handle:timer, any:client)
 {
-	if(CanMessage < 3 && IsPlayerAlive(client))
+	if(canMessage[client] && IsPlayerAlive(client))
 	{
 		PrintToChatAll("[SM] %N died in a rocket-related accident", client);
-		CanMessage++;
-		if(CanMessage > 3)
-		{
-			CanMessage=3;
-		}
-		CreateTimer(3.0, MakeCanMessage);
+		canMessage[client]=false;
+		CreateTimer(3.0, MakeCanMessage, client);
 	}
 
 	if(!IsPlayerAlive(client))
@@ -513,10 +509,12 @@ public Action:MessageUs(Handle:timer, any:client)
 	}
 }
 
-public Action:MakeCanMessage(Handle:timer)
+public Action:MakeCanMessage(Handle:timer, any:client)
 {
-	if(CanMessage > 0)
-	{
-		CanMessage--;
-	}
+	canMessage[client]=true;
+}
+
+public OnClientDisconnect(client)
+{
+	canMessage[client]=true;
 }
